@@ -4,8 +4,14 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
+type Production = {
+  id: number;
+  name: string;
+  date: string;
+};
+
 export default function Dashboard() {
-  const [productions, setProductions] = useState([])
+  const [productions, setProductions] = useState<Production[]>([])
   const [newProduction, setNewProduction] = useState('')
 
   return (
