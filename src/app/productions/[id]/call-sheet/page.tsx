@@ -6,8 +6,6 @@ import { supabase } from '../../../../lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 
@@ -69,6 +67,7 @@ export default function CallSheetGenerator() {
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   const loadData = async () => {
@@ -208,11 +207,6 @@ export default function CallSheetGenerator() {
 
     try {
       console.log('🌤️ Fetching weather for:', production.weather_city)
-      
-      // Using a free weather API (OpenWeatherMap)
-      const API_KEY = 'demo' // You'll need to get a free API key
-      const city = production.weather_city
-      const date = production.shoot_date
       
       // For demo purposes, let's create realistic weather data
       const weatherData = {
