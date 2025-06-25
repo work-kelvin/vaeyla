@@ -346,7 +346,7 @@ export default function LooksManagement() {
                                     width={400}
                                     height={192}
                                     className="w-full h-48 object-cover transition-transform duration-300 group-hover/image:scale-110"
-                                    onError={(e) => {
+                                    onError={() => {
                                       console.error('Image failed to load:', look.image_url)
                                     }}
                                   />
