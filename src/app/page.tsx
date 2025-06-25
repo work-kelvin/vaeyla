@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
+import Image from 'next/image'
 
 interface Production {
   id: string
@@ -28,27 +29,23 @@ interface Equipment {
 
 export default function TodaysShootDashboard() {
   const router = useRouter()
-  const [production, setProduction] = useState<Production | null>(null)
   const [schedule, setSchedule] = useState<{ time: string; label: string }[]>([])
   const [looks, setLooks] = useState<Look[]>([])
   const [equipment, setEquipment] = useState<Equipment[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Fetch the latest production (today's shoot)
     supabase.from('productions').select('*').order('created_at', { ascending: false }).limit(1).then(({ data }) => {
       if (data && data.length > 0) {
-        setProduction(data[0])
         // Example: fetch schedule, looks, equipment for this production
         fetchSchedule(data[0].id)
         fetchLooks(data[0].id)
         fetchEquipment(data[0].id)
       }
-      setLoading(false)
     })
   }, [])
 
-  const fetchSchedule = async (productionId: string) => {
+  const fetchSchedule = async (_productionId: string) => {
     // Replace with your real schedule fetching logic
     // For now, use dummy data
     setSchedule([
@@ -58,12 +55,12 @@ export default function TodaysShootDashboard() {
     ])
   }
 
-  const fetchLooks = async (productionId: string) => {
-    const { data } = await supabase.from('looks').select('id, name, image_url').eq('production_id', productionId).order('sequence_order', { ascending: true })
+  const fetchLooks = async (_productionId: string) => {
+    const { data } = await supabase.from('looks').select('id, name, image_url').eq('production_id', _productionId).order('sequence_order', { ascending: true })
     setLooks(data || [])
   }
 
-  const fetchEquipment = async (productionId: string) => {
+  const fetchEquipment = async (_productionId: string) => {
     // Replace with your real equipment fetching logic
     // For now, use dummy data
     setEquipment([
@@ -77,7 +74,7 @@ export default function TodaysShootDashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12">
       {/* Header Row */}
       <div className="w-full max-w-5xl flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold tracking-tight">Today's Shoot</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Today&apos;s Shoot</h1>
         <button
           className="bg-white border px-6 py-2 rounded-xl shadow hover:bg-gray-100 font-semibold"
           onClick={() => router.push('/call-sheet')}
@@ -92,8 +89,8 @@ export default function TodaysShootDashboard() {
         <div className="bg-white rounded-2xl shadow p-8 flex-1">
           <h2 className="text-xl font-bold mb-6">Schedule</h2>
           <div className="space-y-4">
-            {schedule.map((item, i) => (
-              <div key={i} className="flex items-center gap-4">
+            {schedule.map((item) => (
+              <div key={item.time + item.label} className="flex items-center gap-4">
                 <span className="text-gray-500 w-20">{item.time}</span>
                 <span className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full font-medium">{item.label}</span>
               </div>
@@ -111,10 +108,12 @@ export default function TodaysShootDashboard() {
                 <span className="text-gray-400">No looks yet.</span>
               ) : (
                 looks.map((look) => (
-                  <img
+                  <Image
                     key={look.id}
                     src={look.image_url || '/placeholder.jpg'}
                     alt={look.name}
+                    width={80}
+                    height={112}
                     className="w-20 h-28 object-cover rounded-xl border"
                   />
                 ))
@@ -125,7 +124,7 @@ export default function TodaysShootDashboard() {
           <div className="bg-white rounded-2xl shadow p-8">
             <h2 className="text-xl font-bold mb-6">Equipment</h2>
             <ul className="space-y-3">
-              {equipment.map((eq, i) => (
+              {equipment.map((eq) => (
                 <li key={eq.id} className="flex items-center gap-3">
                   <span
                     className={`w-3 h-3 rounded-full ${eq.ready ? 'bg-green-400' : 'bg-gray-300'}`}
