@@ -1,3 +1,4 @@
+'use client'
 import './globals.css'
 import { ReactNode, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
