@@ -28,6 +28,9 @@ interface Production {
   weather_temp?: string
   sunrise_time?: string
   sunset_time?: string
+  wrap_time?: string
+  lunch_time?: string
+  estimated_wrap?: string
 }
 
 interface CrewMember {
@@ -328,6 +331,30 @@ export default function CallSheetGenerator() {
                     onChange={(e) => updateProduction('call_time', e.target.value)}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Wrap Time</label>
+                  <Input
+                    type="time"
+                    value={production.wrap_time || ''}
+                    onChange={(e) => updateProduction('wrap_time', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Lunch Break</label>
+                  <Input
+                    placeholder="e.g., 1:00 PM - 2:00 PM"
+                    value={production.lunch_time || ''}
+                    onChange={(e) => updateProduction('lunch_time', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Estimated Wrap</label>
+                  <Input
+                    placeholder="e.g., 6:00 PM"
+                    value={production.estimated_wrap || ''}
+                    onChange={(e) => updateProduction('estimated_wrap', e.target.value)}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -514,33 +541,46 @@ export default function CallSheetGenerator() {
               <CardContent>
                 <div 
                   ref={callSheetRef}
-                  className="bg-white p-8 border shadow-sm max-w-4xl mx-auto"
-                  style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', lineHeight: '1.4' }}
+                  style={{ 
+                    backgroundColor: 'white',
+                    color: 'black',
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '12px',
+                    lineHeight: '1.4',
+                    padding: '32px',
+                    border: '1px solid #ccc'
+                  }}
                 >
                   {/* Header */}
-                  <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold mb-2">{production.name || 'PRODUCTION TITLE'}</h1>
-                    <h2 className="text-lg">{production.shoot_date ? new Date(production.shoot_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'DATE'}</h2>
+                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+                      {production.name || 'PRODUCTION TITLE'}
+                    </h1>
+                    <h2 style={{ fontSize: '18px' }}>
+                      {production.shoot_date ? 
+                        new Date(production.shoot_date).toLocaleDateString('en-US', { 
+                          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                        }) : 'DATE'
+                      }
+                    </h2>
                   </div>
 
-                  {/* Location Section */}
-                  <div className="mb-6">
-                    <div className="grid grid-cols-2 gap-8">
-                      <div>
-                        <p><strong>Location:</strong></p>
-                        <p className="ml-4">{production.location_address || 'LOCATION ADDRESS'}</p>
-                        <p className="ml-4">{production.location_details || ''}</p>
-                      </div>
-                      <div>
-                        <p><strong>Location Contact:</strong></p>
-                        <p className="ml-4">{production.producer_name || 'CONTACT NAME'}</p>
-                        <p className="ml-4">{production.producer_phone || 'CONTACT PHONE'}</p>
-                      </div>
+                  {/* Location & Contact */}
+                  <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                    <div>
+                      <p><strong>Location:</strong></p>
+                      <p style={{ marginLeft: '16px' }}>{production.location_address || 'LOCATION ADDRESS'}</p>
+                      <p style={{ marginLeft: '16px' }}>{production.location_details || ''}</p>
+                    </div>
+                    <div>
+                      <p><strong>Location Contact:</strong></p>
+                      <p style={{ marginLeft: '16px' }}>{production.producer_name || 'CONTACT NAME'}</p>
+                      <p style={{ marginLeft: '16px' }}>{production.producer_phone || 'CONTACT PHONE'}</p>
                     </div>
                   </div>
 
                   {/* Weather */}
-                  <div className="text-center mb-6">
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <p>
                       {production.weather_condition || '☀️'} / {production.weather_temp || '32°C'} / 
                       Sunrise {production.sunrise_time || '5:53AM'} / 
@@ -548,35 +588,46 @@ export default function CallSheetGenerator() {
                     </p>
                   </div>
 
+                  {/* Basic Timing */}
+                  <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                    <div>
+                      <p><strong>General Call Time:</strong> {production.call_time || 'TBD'}</p>
+                      <p><strong>Wrap Time:</strong> {production.wrap_time || 'TBD'}</p>
+                    </div>
+                    <div>
+                      <p><strong>Lunch Break:</strong> {production.lunch_time || '1:00 PM - 2:00 PM'}</p>
+                      <p><strong>Estimated Wrap:</strong> {production.estimated_wrap || '6:00 PM'}</p>
+                    </div>
+                  </div>
+
                   {/* Crew Section */}
-                  <div className="mb-8">
-                    <h3 className="font-bold text-base mb-3">Crew:</h3>
+                  <div style={{ marginBottom: '32px' }}>
+                    <h3 style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '12px' }}>Crew:</h3>
                     
-                    <table className="w-full border-collapse border border-black">
+                    <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid black' }}>
                       <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-black p-2 text-center font-bold">Name</th>
-                          <th className="border border-black p-2 text-center font-bold">Role</th>
-                          <th className="border border-black p-2 text-center font-bold">Contact Number</th>
-                          <th className="border border-black p-2 text-center font-bold">Call Time</th>
+                        <tr style={{ backgroundColor: '#f3f4f6' }}>
+                          <th style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>Name</th>
+                          <th style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>Role</th>
+                          <th style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>Contact Number</th>
+                          <th style={{ border: '1px solid black', padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>Call Time</th>
                         </tr>
                       </thead>
                       <tbody>
                         {crew.length > 0 ? crew.map((member) => (
                           <tr key={member.id}>
-                            <td className="border border-black p-3 text-center">{member.name}</td>
-                            <td className="border border-black p-3 text-center">{member.role}</td>
-                            <td className="border border-black p-3 text-center">{member.phone || ''}</td>
-                            <td className="border border-black p-3 text-center">{member.call_time || ''}</td>
+                            <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center' }}>{member.name}</td>
+                            <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center' }}>{member.role}</td>
+                            <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center' }}>{member.phone || ''}</td>
+                            <td style={{ border: '1px solid black', padding: '12px', textAlign: 'center' }}>{member.call_time || ''}</td>
                           </tr>
                         )) : (
-                          // Empty rows for manual filling
-                          Array.from({ length: 8 }, (_, i) => (
+                          Array.from({ length: 6 }, (_, i) => (
                             <tr key={i}>
-                              <td className="border border-black p-3 h-8"></td>
-                              <td className="border border-black p-3 h-8"></td>
-                              <td className="border border-black p-3 h-8"></td>
-                              <td className="border border-black p-3 h-8"></td>
+                              <td style={{ border: '1px solid black', padding: '12px', height: '32px' }}></td>
+                              <td style={{ border: '1px solid black', padding: '12px', height: '32px' }}></td>
+                              <td style={{ border: '1px solid black', padding: '12px', height: '32px' }}></td>
+                              <td style={{ border: '1px solid black', padding: '12px', height: '32px' }}></td>
                             </tr>
                           ))
                         )}
@@ -585,103 +636,20 @@ export default function CallSheetGenerator() {
                   </div>
 
                   {/* Entry/Parking */}
-                  <div className="mb-6">
+                  <div style={{ marginBottom: '24px' }}>
                     <p><strong>Entry/Parking:</strong></p>
-                    <p className="ml-4">{production.parking_info || 'PARKING INSTRUCTIONS'}</p>
+                    <p style={{ marginLeft: '16px' }}>{production.parking_info || 'PARKING INSTRUCTIONS'}</p>
                   </div>
 
-                  {/* Schedule */}
-                  <div className="mb-8">
-                    <h3 className="font-bold text-base mb-3">Schedule:</h3>
-                    
-                    <table className="w-full border-collapse border border-black">
-                      <tbody>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold w-24">8:00</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">8:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">8:00-10:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Set Up / Test</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">8:45</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">9:00</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">9:15</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">9:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">9:45</td>
-                          <td className="border border-black p-2 text-center font-bold">Call</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">9:30-10:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Fitting / Review</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">10:30-2:00</td>
-                          <td className="border border-black p-2 text-center font-bold">Shoot</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">2:00-2:45</td>
-                          <td className="border border-black p-2 text-center font-bold">Break</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">2:45-5:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Shoot</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">5:00</td>
-                          <td className="border border-black p-2 text-center font-bold">Wrap</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">5:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Wrap</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                        <tr>
-                          <td className="border border-black p-2 text-center font-bold">5:30-6:30</td>
-                          <td className="border border-black p-2 text-center font-bold">Tear Down / Load Out</td>
-                          <td className="border border-black p-2"></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Looks Section */}
+                  {/* Looks */}
                   {looks.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="font-bold text-base mb-3">Looks:</h3>
-                      <ul className="list-none space-y-1">
+                    <div style={{ marginBottom: '24px' }}>
+                      <h3 style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '12px' }}>Looks:</h3>
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
                         {looks.map((look, index) => (
-                          <li key={look.id}>Look {index + 1}: {look.name}</li>
+                          <li key={look.id} style={{ marginBottom: '4px' }}>
+                            Look {index + 1}: {look.name}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -689,14 +657,14 @@ export default function CallSheetGenerator() {
 
                   {/* Special Notes */}
                   {production.special_notes && (
-                    <div className="mb-6">
-                      <h3 className="font-bold text-base mb-3">Special Notes:</h3>
+                    <div style={{ marginBottom: '24px' }}>
+                      <h3 style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '12px' }}>Special Notes:</h3>
                       <p>{production.special_notes}</p>
                     </div>
                   )}
 
                   {/* Footer */}
-                  <div className="text-right mt-12 italic text-sm">
+                  <div style={{ textAlign: 'right', marginTop: '48px', fontStyle: 'italic', fontSize: '11px' }}>
                     <p>This is a closed set. No personal photos or videos</p>
                     <p>are to be captured without prior consent.</p>
                   </div>
