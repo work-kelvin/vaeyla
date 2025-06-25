@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import Image from 'next/image'
+import { DropResult } from '@hello-pangea/dnd'
 
 interface Look {
   id: string
@@ -32,11 +34,11 @@ export default function LooksManagement() {
   const [newLookName, setNewLookName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [draggedItem, setDraggedItem] = useState<string | null>(null)
 
   useEffect(() => {
     loadProduction()
     loadLooks()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   const loadProduction = async () => {
@@ -111,7 +113,7 @@ export default function LooksManagement() {
       console.log('🚀 Uploading image:', fileName)
 
       // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('production-images')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -158,7 +160,7 @@ export default function LooksManagement() {
     setUploading(false)
   }
 
-  const onDragEnd = async (result: any) => {
+  const onDragEnd = async (result: DropResult) => {
     if (!result.destination) return
 
     const items = Array.from(looks)
@@ -338,13 +340,14 @@ export default function LooksManagement() {
                             <div className="mb-4">
                               {look.image_url ? (
                                 <div className="relative overflow-hidden rounded-lg group/image">
-                                  <img
+                                  <Image
                                     src={look.image_url}
                                     alt={look.name}
+                                    width={400}
+                                    height={192}
                                     className="w-full h-48 object-cover transition-transform duration-300 group-hover/image:scale-110"
                                     onError={(e) => {
                                       console.error('Image failed to load:', look.image_url)
-                                      e.currentTarget.style.display = 'none'
                                     }}
                                   />
                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover/image:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
