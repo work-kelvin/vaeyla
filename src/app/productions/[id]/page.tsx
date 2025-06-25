@@ -25,6 +25,7 @@ export default function ProductionDetail() {
 
   useEffect(() => {
     loadProduction()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   const loadProduction = async () => {

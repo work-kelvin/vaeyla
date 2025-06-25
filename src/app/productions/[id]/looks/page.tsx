@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-// @ts-expect-error: No type declarations for @hello-pangea/dnd
-import { DragDropContext, Droppable, Draggable, DropResult, DraggableProvided, DraggableStateSnapshot, DroppableProvided } from '@hello-pangea/dnd'
+import Image from 'next/image'
 
 interface Look {
   id: string
@@ -37,6 +36,7 @@ export default function LooksManagement() {
   useEffect(() => {
     loadProduction()
     loadLooks()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   const loadProduction = async () => {
@@ -99,13 +99,15 @@ export default function LooksManagement() {
     const fileName = `${lookId}-${Date.now()}.${fileExt}`
     const filePath = `looks/${fileName}`
 
+    console.log('🚀 Uploading image:', fileName)
+
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from('production-images')
       .upload(filePath, file)
 
     if (uploadError) {
-      console.error('Error uploading image:', uploadError)
+      console.error('❌ Error uploading image:', uploadError)
       setUploading(false)
       return
     }
@@ -115,6 +117,8 @@ export default function LooksManagement() {
       .from('production-images')
       .getPublicUrl(filePath)
 
+    console.log('✅ Image uploaded, URL:', publicUrl)
+
     // Update look with image URL
     const { error: updateError } = await supabase
       .from('looks')
@@ -122,7 +126,7 @@ export default function LooksManagement() {
       .eq('id', lookId)
 
     if (updateError) {
-      console.error('Error updating look with image:', updateError)
+      console.error('❌ Error updating look with image:', updateError)
     } else {
       // Update local state
       setLooks(looks.map(look => 
@@ -130,33 +134,10 @@ export default function LooksManagement() {
           ? { ...look, image_url: publicUrl }
           : look
       ))
+      console.log('✅ Look updated with image')
     }
     
     setUploading(false)
-  }
-
-  const onDragEnd = async (result: any) => {
-    if (!result.destination) return
-
-    const items = Array.from(looks)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem)
-
-    // Update sequence_order for all items
-    const updates = items.map((item, index) => ({
-      id: item.id,
-      sequence_order: index
-    }))
-
-    setLooks(items)
-
-    // Update database
-    for (const update of updates) {
-      await supabase
-        .from('looks')
-        .update({ sequence_order: update.sequence_order })
-        .eq('id', update.id)
-    }
   }
 
   const deleteLook = async (lookId: string) => {
@@ -235,104 +216,87 @@ export default function LooksManagement() {
             </CardContent>
           </Card>
         ) : (
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="looks">
-              {(provided: DroppableProvided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                >
-                  {looks.map((look, index) => (
-                    <Draggable key={look.id} draggableId={look.id} index={index}>
-                      {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                        <Card
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`${snapshot.isDragging ? 'shadow-lg' : ''} hover:shadow-md transition-shadow`}
-                        >
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <CardTitle className="text-lg">{look.name}</CardTitle>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline">#{index + 1}</Badge>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => deleteLook(look.id)}
-                                >
-                                  ×
-                                </Button>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            {/* Image Upload/Display */}
-                            <div className="mb-4">
-                              {look.image_url ? (
-                                <div className="relative">
-                                  <img
-                                    src={look.image_url}
-                                    alt={look.name}
-                                    className="w-full h-48 object-cover rounded-md"
-                                  />
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="absolute top-2 right-2"
-                                    onClick={() => {
-                                      const input = document.createElement('input')
-                                      input.type = 'file'
-                                      input.accept = 'image/*'
-                                      input.onchange = (e) => {
-                                        const file = (e.target as HTMLInputElement).files?.[0]
-                                        if (file) uploadImage(look.id, file)
-                                      }
-                                      input.click()
-                                    }}
-                                  >
-                                    Change
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div
-                                  className="w-full h-48 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
-                                  onClick={() => {
-                                    const input = document.createElement('input')
-                                    input.type = 'file'
-                                    input.accept = 'image/*'
-                                    input.onchange = (e) => {
-                                      const file = (e.target as HTMLInputElement).files?.[0]
-                                      if (file) uploadImage(look.id, file)
-                                    }
-                                    input.click()
-                                  }}
-                                >
-                                  <div className="text-center">
-                                    <div className="text-4xl mb-2">📸</div>
-                                    <p className="text-sm text-gray-600">
-                                      {uploading ? 'Uploading...' : 'Click to upload image'}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="text-sm text-gray-600">
-                              <p><strong>Sequence:</strong> {index + 1}</p>
-                              <p><strong>Created:</strong> {new Date(look.created_at).toLocaleDateString()}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {looks.map((look, index) => (
+              <Card key={look.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{look.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">#{index + 1}</Badge>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteLook(look.id)}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Image Upload/Display */}
+                  <div className="mb-4">
+                    {look.image_url ? (
+                      <div className="relative group">
+                        <Image
+                          src={look.image_url}
+                          alt={look.name}
+                          width={400}
+                          height={192}
+                          className="w-full h-48 object-cover rounded-md"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-md flex items-center justify-center">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              const input = document.createElement('input')
+                              input.type = 'file'
+                              input.accept = 'image/*'
+                              input.onchange = (e) => {
+                                const file = (e.target as HTMLInputElement).files?.[0]
+                                if (file) uploadImage(look.id, file)
+                              }
+                              input.click()
+                            }}
+                          >
+                            Change Image
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="w-full h-48 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+                        onClick={() => {
+                          const input = document.createElement('input')
+                          input.type = 'file'
+                          input.accept = 'image/*'
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0]
+                            if (file) uploadImage(look.id, file)
+                          }
+                          input.click()
+                        }}
+                      >
+                        <div className="text-center">
+                          <div className="text-4xl mb-2">📸</div>
+                          <p className="text-sm text-gray-600">
+                            {uploading ? 'Uploading...' : 'Click to upload image'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <p><strong>Sequence:</strong> {index + 1}</p>
+                    <p><strong>Created:</strong> {new Date(look.created_at).toLocaleDateString()}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
 
         {uploading && (
