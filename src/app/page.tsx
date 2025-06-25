@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 
 interface Production {
   id: string
@@ -18,160 +13,70 @@ interface Production {
 export default function Dashboard() {
   const router = useRouter()
   const [productions, setProductions] = useState<Production[]>([])
-  const [newProduction, setNewProduction] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadProductions()
-  }, [])
-
-  const loadProductions = async () => {
-    console.log('🚀 Loading productions from database...')
-    const { data, error } = await supabase
-      .from('productions')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('❌ Error loading productions:', error)
-    } else {
-      console.log('📊 Loaded productions:', data)
+    supabase.from('productions').select('*').then(({ data }) => {
       setProductions(data || [])
-    }
-  }
-
-  const createProduction = async () => {
-    if (!newProduction.trim()) return
-
-    setLoading(true)
-    console.log('🚀 Creating production:', newProduction)
-    
-    const { data, error } = await supabase
-      .from('productions')
-      .insert([{ name: newProduction.trim() }])
-      .select()
-
-    if (error) {
-      console.error('❌ Error creating production:', error)
-    } else {
-      console.log('✅ Created production:', data)
-      setProductions([...data, ...productions])
-      setNewProduction('')
-    }
-    setLoading(false)
-  }
+      setLoading(false)
+    })
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">VAELYA</h1>
-          <p className="text-xl text-gray-600">Production Management Platform</p>
+      {/* Top Nav */}
+      <nav className="bg-white shadow-sm px-8 py-4 flex items-center justify-between">
+        <div className="font-bold text-xl tracking-tight">VAELYA</div>
+        <div className="flex gap-8">
+          <button className="font-medium text-gray-700 border-b-2 border-black pb-1">Home</button>
+          <button className="font-medium text-gray-500 hover:text-black">Productions</button>
+          <button className="font-medium text-gray-500 hover:text-black">Activity</button>
+        </div>
+        <div>{/* Profile/Settings */}</div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-10">
+        {/* Quick Actions */}
+        <div className="flex gap-4 mb-8">
+          <button className="bg-black text-white rounded-xl px-6 py-3 font-semibold shadow hover:bg-gray-800 transition">+ Add Production</button>
+          <button className="bg-white border rounded-xl px-6 py-3 font-semibold shadow hover:bg-gray-100 transition">Move Money</button>
         </div>
 
-        {/* Create Production Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Create New Production</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-3">
-              <Input 
-                type="text"
-                placeholder="Enter production name..."
-                value={newProduction}
-                onChange={(e) => setNewProduction(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && createProduction()}
-                className="flex-1"
-              />
-              <Button 
-                onClick={createProduction}
-                disabled={loading}
-                className="px-6"
-              >
-                {loading ? 'Creating...' : 'Create Production'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Separator className="mb-8" />
-
         {/* Productions Grid */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-6">Your Productions</h2>
-          
-          {productions.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <div className="text-gray-500">
-                  <div className="text-6xl mb-4">🎬</div>
-                  <h3 className="text-xl font-semibold mb-2">No productions yet</h3>
-                  <p>Create your first shoot production to get started</p>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {loading ? (
+            <div className="col-span-3 text-center text-gray-400">Loading...</div>
+          ) : productions.length === 0 ? (
+            <div className="col-span-3 text-center text-gray-400">No productions yet.</div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {productions.map((prod) => (
-                <Card 
-                  key={prod.id} 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => router.push(`/productions/${prod.id}`)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg">{prod.name}</CardTitle>
-                      <Badge variant="outline">Active</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div>
-                        <strong>Created:</strong> {new Date(prod.created_at).toLocaleDateString()}
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                        <Badge variant="secondary" className="text-xs">
-                          Setup
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          Planning
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            productions.map((prod) => (
+              <div
+                key={prod.id}
+                className="bg-white rounded-2xl shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition cursor-pointer"
+                onClick={() => router.push(`/productions/${prod.id}`)}
+              >
+                <div>
+                  <h3 className="text-lg font-bold mb-2">{prod.name}</h3>
+                  <p className="text-gray-500 text-sm">Created: {new Date(prod.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <span className="bg-gray-100 rounded-full px-3 py-1 text-xs">Active</span>
+                </div>
+              </div>
+            ))
           )}
         </div>
 
-        {/* Quick Stats */}
-        {productions.length > 0 && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-blue-600">{productions.length}</div>
-                  <div className="text-gray-600">Total Productions</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-green-600">{productions.length}</div>
-                  <div className="text-gray-600">Active Projects</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-purple-600">0</div>
-                  <div className="text-gray-600">Completed Shoots</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+        {/* Stats/Watchlist */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl shadow p-6 text-center">
+            <div className="text-2xl font-bold">{productions.length}</div>
+            <div className="text-gray-500">Total Productions</div>
+          </div>
+          {/* Add more cards for stats or watchlist as needed */}
+        </div>
+      </main>
     </div>
   )
 }
