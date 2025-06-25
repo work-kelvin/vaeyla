@@ -2,12 +2,12 @@
 import './globals.css'
 import { ReactNode, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Session, AuthChangeEvent } from '@supabase/supabase-js'
+import { Session, AuthChangeEvent, AuthUser } from '@supabase/supabase-js'
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   /* ----------- realtime auth listener ----------- */
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
 
   useEffect(() => {
     console.log('🚀 [RootLayout] Subscribing to auth changes')
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(
       (_event: AuthChangeEvent, session: Session | null) => {
-        setUser(session?.user)
+        setUser(session ? session.user : null)
         setLoading(false)
       }
     )
