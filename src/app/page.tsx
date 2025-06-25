@@ -5,16 +5,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import Image from 'next/image'
 
-interface Production {
-  id: string
-  name: string
-  created_at: string
-  call_time?: string
-  wrap_time?: string
-  lunch_time?: string
-  estimated_wrap?: string
-}
-
 interface Look {
   id: string
   name: string
@@ -38,14 +28,14 @@ export default function TodaysShootDashboard() {
     supabase.from('productions').select('*').order('created_at', { ascending: false }).limit(1).then(({ data }) => {
       if (data && data.length > 0) {
         // Example: fetch schedule, looks, equipment for this production
-        fetchSchedule(data[0].id)
+        fetchSchedule()
         fetchLooks(data[0].id)
-        fetchEquipment(data[0].id)
+        fetchEquipment()
       }
     })
   }, [])
 
-  const fetchSchedule = async (_productionId: string) => {
+  const fetchSchedule = async () => {
     // Replace with your real schedule fetching logic
     // For now, use dummy data
     setSchedule([
@@ -55,12 +45,12 @@ export default function TodaysShootDashboard() {
     ])
   }
 
-  const fetchLooks = async (_productionId: string) => {
-    const { data } = await supabase.from('looks').select('id, name, image_url').eq('production_id', _productionId).order('sequence_order', { ascending: true })
+  const fetchLooks = async (productionId: string) => {
+    const { data } = await supabase.from('looks').select('id, name, image_url').eq('production_id', productionId).order('sequence_order', { ascending: true })
     setLooks(data || [])
   }
 
-  const fetchEquipment = async (_productionId: string) => {
+  const fetchEquipment = async () => {
     // Replace with your real equipment fetching logic
     // For now, use dummy data
     setEquipment([
